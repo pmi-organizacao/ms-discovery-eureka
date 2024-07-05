@@ -35,7 +35,7 @@ jobs:
       run: ls -la ./target
       
     - name: Construir imagem Docker
-      run: docker build . -t daniel0208/gateway-app-pmi
+      run: docker build . daniel0208/gateway-app-pmi
       working-directory: ./  # Define o contexto como o diretório raiz onde o Dockerfile está localizado
       
     - name: Login no Docker Hub
