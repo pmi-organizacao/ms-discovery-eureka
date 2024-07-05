@@ -6,7 +6,7 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Deploy do service ms-pmi-gerencial-projeto Homologacao
+name: Deploy do serviço ms-pmi-gerencial-projeto para Homologação
 
 on:
   push:
@@ -18,27 +18,27 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
- 
-    - name: Checkout repository
+    - name: Checkout do repositório
       uses: actions/checkout@v4
-
-    - name: Set up JDK 17
+      
+    - name: Configurar JDK 17
       uses: actions/setup-java@v3
       with:
         java-version: '17'
         distribution: 'temurin'
         cache: maven
-   
-    - name: Build with Maven
+      
+    - name: Construir com Maven
       run: mvn -B package --file pom.xml
-  
-    - name: List files in target directory
+      
+    - name: Listar arquivos no diretório target
       run: ls -la ./target
-  
-    - name: Build Docker image
-      run: docker build . -t daniel0208/gateway-app-pmi 
-   
-    - name: Log in to Docker Hub
+      
+    - name: Construir imagem Docker
+      run: docker build . -t daniel0208/gateway-app-pmi
+      working-directory: ./  # Define o contexto como o diretório raiz onde o Dockerfile está localizado
+      
+    - name: Login no Docker Hub
       uses: docker/login-action@v2
       with:
         username: daniellopes0208@hotmail.com
