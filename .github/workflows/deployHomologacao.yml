@@ -1,12 +1,4 @@
-# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
-
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
-name: Deploy do service ms-pmi-gerencial-projeto Homologacao
+name: Deploy do serviço ms-pmi-gerencial-projeto para Homologação
 
 on:
   push:
@@ -17,73 +9,32 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up JDK 17
-      uses: actions/setup-java@v3
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: maven
-    - name: Build with Maven
-      run: mvn -B package --file pom.xml
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
 
-    - name: Listar o arquivo builder
-      run: ls -la ./target 
-
-  deploy:
-      runs-on: ubuntu-latest
-      needs: build
-      steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK 
+      - name: Configurar JDK 17
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
-      - name: Build with Maven
+
+      - name: Construir com Maven
         run: mvn -B package --file pom.xml
-      - name: copiando arquivo para vm aws
-        uses: appleboy/scp-action@master
+
+      - name: Listar arquivos no diretório target
+        run: ls -la ./target
+
+      - name: Construir imagem Docker
+        run: docker build . -t daniel0208/eureka-app
+        working-directory: ./  # Define o contexto como o diretório raiz onde o Dockerfile está localizado
+
+      - name: Login no Docker Hub
+        uses: docker/login-action@v2
         with:
-          port: 22
-          username: ec2-user
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          host: ec2-100-26-172-119.compute-1.amazonaws.com
-          source: "./target/aplicacao-0.0.1-SNAPSHOT.jar"
-          target: "root/aplicacao"
+          username: daniellopes0208@hotmail.com
+          password: pedropaulo123
 
-
-  start:
-      runs-on: ubuntu-latest
-      needs: deploy
-      steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK 
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: maven
-      - name: Startando aplicacao na vm da aws
-        uses: appleboy/ssh-action@master
-        with:
-          port: 22
-          username: ec2-user
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          host: ec2-100-26-172-119.compute-1.amazonaws.com
-          script: "/home/ec2-user/root/aplicacao/target/deploy_aplicacao.sh"
-    
-    
-    
-    
-    # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
-#    - name: Update dependency graph
- #     uses: advanced-security/maven-dependency-submission-action@571e99aab1055c2e71a1e2309b9691de18d6b7d6
-
-
-    # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
-    #- name: Update dependency graph
-    # uses: advanced-security/maven-dependency-submission-action@571e99aab1055c2e71a1e2309b9691de18d6b7d6
+      - name: Push Docker image to Docker Hub
+        run: docker push daniel0208/eureka-app
